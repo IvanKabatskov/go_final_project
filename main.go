@@ -3,11 +3,13 @@ package main
 import (
 	"log"
 	"os"
+	"time"
 
 	"final_project/internal/db"
 	"final_project/internal/server"
 )
-func func NextDate(now time.Time, dstart string, repeat string) (string, error){
+
+func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 
 }
 

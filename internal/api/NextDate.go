@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -32,9 +33,9 @@ func weeksInterval(splitedRepeat []string) (map[time.Weekday]bool, error) {
 		err := errors.New("invalid 'w' rule format: missing weekdays")
 		return nil, err
 	}
-	weekdays := make(map[time.Weekday]bool)
-	weekday := strings.Split(splitedRepeat[1], ",")
-	for _, day := range weekday {
+	weekDays := make(map[time.Weekday]bool)
+	weekDay := strings.Split(splitedRepeat[1], ",")
+	for _, day := range weekDay {
 		numOfDay, err := strconv.Atoi(day)
 		if err != nil {
 			err = fmt.Errorf("next date: failed to parse a string to a number %q: %w", day, err)
@@ -44,9 +45,51 @@ func weeksInterval(splitedRepeat []string) (map[time.Weekday]bool, error) {
 			err = errors.New("invalid day interval: must be between 1 and 7")
 			return nil, err
 		}
-		weekdays[time.Weekday(numOfDay)] = true
+		if numOfDay == 7 {
+			numOfDay = 0
+		}
+		weekDays[time.Weekday(numOfDay)] = true
 	}
-	return weekdays, nil
+	return weekDays, nil
+}
+
+func monthsInterval(splitedRepeat []string) (map[int]bool, map[int]bool, error) {
+	if len(splitedRepeat) < 2 {
+		err := errors.New("invalid 'm' rule format: missing days of month")
+		return nil, nil, err
+	}
+	months := make(map[int]bool)
+	dayOfMonth := make(map[int]bool)
+
+	daysOfMoth := strings.Split(splitedRepeat[1], ",")
+	for _, day := range daysOfMoth {
+		numOfDay, err := strconv.Atoi(day)
+		if err != nil {
+			err = fmt.Errorf("next date: failed to parse a string to a number %q: %w", day, err)
+			return nil, nil, err
+		}
+		if numOfDay < -2 || numOfDay > 31 || numOfDay == 0 {
+			err = errors.New("invalid day interval: must be between -2 and 31, not include 0")
+			return nil, nil, err
+		}
+		dayOfMonth[numOfDay] = true
+	}
+	if len(splitedRepeat) > 2 {
+		spletedMonths := strings.Split(splitedRepeat[2], ",")
+		for _, month := range spletedMonths {
+			numOfMonth, err := strconv.Atoi(month)
+			if err != nil {
+				err = fmt.Errorf("next date: failed to parse a string to a number %q: %w", month, err)
+				return nil, nil, err
+			}
+			if numOfMonth < 1 || numOfMonth > 12 {
+				err = errors.New("invalid month interval: must be between 1 and 12")
+				return nil, nil, err
+			}
+			months[numOfMonth] = true
+		}
+	}
+	return dayOfMonth, months, nil
 }
 
 func afterNow(nextDate time.Time, now time.Time) bool {
@@ -79,27 +122,52 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 			return "", err
 		}
 		for {
-			nextDate = date.AddDate(0, 0, days)
+			nextDate = nextDate.AddDate(0, 0, days)
 			if afterNow(nextDate, now) {
 				break
 			}
 		}
 	case "w":
-		if len(splitedRepeat) < 2 {
-			err := errors.New("invalid 'w' rule format: missing week interval")
-			return "", err
-		}
 		weekdays, err := weeksInterval(splitedRepeat)
 		if err != nil {
 			return "", err
 		}
 		for {
-			nextDate = date.AddDate(0, 0, days)
-			if afterNow(nextDate, now) {
+			nextDate = nextDate.AddDate(0, 0, 1)
+			if weekdays[nextDate.Weekday()] && afterNow(nextDate, now) {
 				break
 			}
 		}
 	case "m":
+		dayOfMonth, months, err := monthsInterval(splitedRepeat)
+		if err != nil {
+			return "", err
+		}
+		for {
+			nextDate = nextDate.AddDate(0, 0, 1)
+			endOfMonth := (nextDate.AddDate(0, 1, -nextDate.Day())).Day()
+			if len(months) == 0 {
+				dayMatches := dayOfMonth[nextDate.Day()] ||
+					(dayOfMonth[-1] && nextDate.Day() == endOfMonth) ||
+					(dayOfMonth[-2] && nextDate.Day() == endOfMonth-1)
+				if dayMatches && afterNow(nextDate, now) {
+					break
+				}
+			} else {
+				dayMatches := months[int(nextDate.Month())] && (dayOfMonth[nextDate.Day()] ||
+					(dayOfMonth[-1] && nextDate.Day() == endOfMonth) ||
+					(dayOfMonth[-2] && nextDate.Day() == endOfMonth-1))
+				if dayMatches && afterNow(nextDate, now) {
+					break
+				}
+			}
+		}
+
 	default:
+		err := fmt.Errorf("unknown repeat rule: %s", rule)
+		return "", err
 	}
+	return nextDate.Format(DateFormat), nil
 }
+
+func nextDayHandler(w http.ResponseWriter, r *http.Request)
