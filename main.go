@@ -3,15 +3,10 @@ package main
 import (
 	"log"
 	"os"
-	"time"
 
 	"final_project/internal/db"
 	"final_project/internal/server"
 )
-
-func NextDate(now time.Time, dstart string, repeat string) (string, error) {
-
-}
 
 func main() {
 	dbFile := os.Getenv("TODO_DBFILE")

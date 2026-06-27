@@ -170,4 +170,30 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	return nextDate.Format(DateFormat), nil
 }
 
-func nextDayHandler(w http.ResponseWriter, r *http.Request)
+func NextDayHandler(res http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		http.Error(res, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	nowValue := req.FormValue("now")
+	dstart := req.FormValue("date")
+	repeat := req.FormValue("repeat")
+
+	var now time.Time
+	var err error
+	if nowValue == "" {
+		now = time.Now()
+	} else {
+		now, err = time.Parse(DateFormat, nowValue)
+		if err != nil {
+			http.Error(res, "invalid 'now' date format", http.StatusBadRequest)
+			return
+		}
+	}
+	nextDate, err := NextDate(now, dstart, repeat)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+	res.Write([]byte(nextDate))
+}

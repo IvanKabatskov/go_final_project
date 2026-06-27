@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"final_project/internal/api"
 	"final_project/tests"
 )
 
@@ -19,6 +20,7 @@ func CreateServer() {
 	router := http.NewServeMux()
 	webDir := "./web"
 	router.Handle("/", http.FileServer(http.Dir(webDir)))
+	router.HandleFunc("/api/nextdate", api.NextDayHandler)
 	server := &http.Server{
 		Addr:         ":" + todoPort,
 		Handler:      router,
