@@ -23,6 +23,7 @@ func CreateServer() {
 	router.Handle("/", http.FileServer(http.Dir(webDir)))
 	router.HandleFunc("GET /api/nextdate", api.NextDayHandler)
 	router.HandleFunc("POST /api/task", tasks.AddTaskHandler)
+	router.HandleFunc("GET /api/tasks", tasks.GetTasksHandler)
 	server := &http.Server{
 		Addr:         ":" + todoPort,
 		Handler:      router,

@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -28,9 +29,34 @@ func AddTask(task *Task) (int64, error) {
 
 	return id, nil
 }
+func GetTask(id string) (*Task, error) {
+	var task Task
+	query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE id = ?`
+	err := Db.QueryRow(query, id).Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+	if err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+func UpdateTask(task *Task) error {
+	query := `UPDATE scheduler SET date = ?, title = ?, comment = ?, repeat = ? WHERE id = ?`
 
-func GetTasks(limit int, search string) ([]Task, error) {
-	tasks := make([]Task, 0)
+	res, err := Db.Exec(query, task.Date, task.Title, task.Comment, task.Repeat, task.ID)
+	if err != nil {
+		return err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf("incorrect id for updating task")
+	}
+
+	return nil
+}
+func GetTasks(limit int, search string) ([]*Task, error) {
+	tasks := make([]*Task, 0)
 	var rows *sql.Rows
 	var err error
 
@@ -60,7 +86,7 @@ func GetTasks(limit int, search string) ([]Task, error) {
 		if err != nil {
 			return nil, err
 		}
-		tasks = append(tasks, task)
+		tasks = append(tasks, &task)
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
