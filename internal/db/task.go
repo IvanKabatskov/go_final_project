@@ -14,6 +14,39 @@ type Task struct {
 	Repeat  string `json:"repeat"`
 }
 
+func DeleteTask(id string) error {
+	query := `DELETE FROM scheduler WHERE id = ?`
+	res, err := Db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf("task not found")
+	}
+	return nil
+}
+
+func UpdateDate(id string, next string) error {
+	query := `UPDATE scheduler SET date = ? WHERE id = ?`
+	res, err := Db.Exec(query, next, id)
+	if err != nil {
+		return err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf("task not found")
+	}
+	return nil
+}
+
 func AddTask(task *Task) (int64, error) {
 	query := `INSERT INTO scheduler (date, title, comment, repeat) VALUES (?, ?, ?, ?)`
 

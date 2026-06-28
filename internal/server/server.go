@@ -24,6 +24,10 @@ func CreateServer() {
 	router.HandleFunc("GET /api/nextdate", api.NextDayHandler)
 	router.HandleFunc("POST /api/task", tasks.AddTaskHandler)
 	router.HandleFunc("GET /api/tasks", tasks.GetTasksHandler)
+	router.HandleFunc("GET /api/task", tasks.GetTaskHandler)
+	router.HandleFunc("PUT /api/task", tasks.UpdateTaskHandler)
+	router.HandleFunc("DELETE /api/task", tasks.DeleteTaskHandler)
+	router.HandleFunc("POST /api/task/done", tasks.TaskDoneHandler)
 	server := &http.Server{
 		Addr:         ":" + todoPort,
 		Handler:      router,
