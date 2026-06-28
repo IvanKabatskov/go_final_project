@@ -92,8 +92,11 @@ func monthsInterval(splitedRepeat []string) (map[int]bool, map[int]bool, error) 
 	return dayOfMonth, months, nil
 }
 
-func afterNow(nextDate time.Time, now time.Time) bool {
-	return nextDate.After(now)
+func AfterNow(nextDate time.Time, now time.Time) bool {
+	nextStr := nextDate.Format(DateFormat)
+	nowStr := now.Format(DateFormat)
+
+	return nextStr > nowStr
 }
 func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	date, err := time.Parse(DateFormat, dstart)
@@ -112,7 +115,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	case "y":
 		for {
 			nextDate = nextDate.AddDate(1, 0, 0)
-			if afterNow(nextDate, now) {
+			if AfterNow(nextDate, now) {
 				break
 			}
 		}
@@ -123,7 +126,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 		for {
 			nextDate = nextDate.AddDate(0, 0, days)
-			if afterNow(nextDate, now) {
+			if AfterNow(nextDate, now) {
 				break
 			}
 		}
@@ -134,7 +137,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 		for {
 			nextDate = nextDate.AddDate(0, 0, 1)
-			if weekdays[nextDate.Weekday()] && afterNow(nextDate, now) {
+			if weekdays[nextDate.Weekday()] && AfterNow(nextDate, now) {
 				break
 			}
 		}
@@ -150,14 +153,14 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 				dayMatches := dayOfMonth[nextDate.Day()] ||
 					(dayOfMonth[-1] && nextDate.Day() == endOfMonth) ||
 					(dayOfMonth[-2] && nextDate.Day() == endOfMonth-1)
-				if dayMatches && afterNow(nextDate, now) {
+				if dayMatches && AfterNow(nextDate, now) {
 					break
 				}
 			} else {
 				dayMatches := months[int(nextDate.Month())] && (dayOfMonth[nextDate.Day()] ||
 					(dayOfMonth[-1] && nextDate.Day() == endOfMonth) ||
 					(dayOfMonth[-2] && nextDate.Day() == endOfMonth-1))
-				if dayMatches && afterNow(nextDate, now) {
+				if dayMatches && AfterNow(nextDate, now) {
 					break
 				}
 			}

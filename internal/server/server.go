@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"final_project/internal/api"
+	"final_project/internal/api/tasks"
 	"final_project/tests"
 )
 
@@ -20,7 +21,8 @@ func CreateServer() {
 	router := http.NewServeMux()
 	webDir := "./web"
 	router.Handle("/", http.FileServer(http.Dir(webDir)))
-	router.HandleFunc("/api/nextdate", api.NextDayHandler)
+	router.HandleFunc("GET /api/nextdate", api.NextDayHandler)
+	router.HandleFunc("POST /api/task", tasks.AddTaskHandler)
 	server := &http.Server{
 		Addr:         ":" + todoPort,
 		Handler:      router,
