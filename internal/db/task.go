@@ -25,7 +25,7 @@ func DeleteTask(id string) error {
 		return err
 	}
 	if count == 0 {
-		return fmt.Errorf("task not found")
+		return fmt.Errorf("task db: Задача не найдена")
 	}
 	return nil
 }
@@ -42,7 +42,7 @@ func UpdateDate(id string, next string) error {
 		return err
 	}
 	if count == 0 {
-		return fmt.Errorf("task not found")
+		return fmt.Errorf("task db: Задача не найдена")
 	}
 	return nil
 }
@@ -83,7 +83,7 @@ func UpdateTask(task *Task) error {
 		return err
 	}
 	if count == 0 {
-		return fmt.Errorf("incorrect id for updating task")
+		return fmt.Errorf("task db: некорректный id")
 	}
 
 	return nil
